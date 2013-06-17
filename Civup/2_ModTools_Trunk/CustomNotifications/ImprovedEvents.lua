@@ -37,7 +37,11 @@ citySizes = {}
 
 --aprint("Initializing City Sizes")
 for pCity in Players[Game.GetActivePlayer()]:Cities() do
-	citySizes[pCity:GetID()] = pCity:GetPopulation()
+  citySizes[pCity:GetID()] = pCity:GetPopulation()
+  --[[
+  aprint(string.format("Initializing player city size %s (id=%s) = %d", 
+    pCity:GetName(), tostring(pCity:GetID()), pCity:GetPopulation()))
+  --]]
 end
 
 
@@ -55,10 +59,16 @@ function CityGrowthNotificationOnSerialEventCityPopulationChanged(iHexX, iHexY, 
 	end
 	
 	--aprint("plot and city ", pPlot,pCity)
-	if pCity:GetOwner() == Game.GetActivePlayer() and iNewPop > 1 then
-		--aprint("Firing growth notification")
-		CustomNotification("CityGrowth", Locale.ConvertTextKey("TXT_KEY_NOTIFICATION_SUMMARY_CITY_GROWTH_2", pCity:GetName()), Locale.ConvertTextKey("TXT_KEY_NOTIFICATION_CITY_GROWTH_2", pCity:GetName(), iNewPop), pPlot, pCity, "Green", 0)
-	end
+  if pCity:GetOwner() == Game.GetActivePlayer() then
+    local iOldPop = citySizes[pCity:GetID()] or 0
+    citySizes[pCity:GetID()] = iNewPop
+
+    --aprint(string.format("%s (id=%s) iOldPop=%d iNewPop=%d", pCity:GetName(), tostring(pCity:GetID()), iOldPop, iNewPop))
+    if iNewPop > 1 and iNewPop > iOldPop then
+      --aprint("Firing growth notification")
+      CustomNotification("CityGrowth", Locale.ConvertTextKey("TXT_KEY_NOTIFICATION_SUMMARY_CITY_GROWTH_2", pCity:GetName()), Locale.ConvertTextKey("TXT_KEY_NOTIFICATION_CITY_GROWTH_2", pCity:GetName(), iNewPop), pPlot, pCity, "Green", 0)
+    end
+  end
 end
 Events.SerialEventCityPopulationChanged.Add(CityGrowthNotificationOnSerialEventCityPopulationChanged)
 
